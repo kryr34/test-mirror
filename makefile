@@ -1,8 +1,18 @@
+PREFIX = /usr/local
+
+CFLAGS = -Wall -pedantic
+LDLIBS = -lncurses -lpanel
+
+cbonsai: cbonsai.c
+
 .PHONY: install
-install: uninstall cbonsai.c
-	gcc cbonsai.c -Wall -Wpedantic -l panel -l ncurses -o cbonsai
-	cp cbonsai ~/.local/bin/cbonsai
+install: cbonsai
+	install -TDm0755 cbonsai $(DESTDIR)$(PREFIX)/bin/cbonsai
 
 .PHONY: uninstall
 uninstall:
-	rm -f cbonsai ~/.local/bin/cbonsai
+	rm -f $(DESTDIR)$(PREFIX)/bin/cbonsai
+
+.PHONY: clean
+clean:
+	rm -f cbonsai *.o
