@@ -1,10 +1,11 @@
 .POSIX:
 CC	= cc
-CFLAGS	= -Wall -pedantic
+CFLAGS	+= -D_POSIX_C_SOURCE=200809L -std=c18 -Wextra -Wall -Wshadow -Wpointer-arith -Wcast-qual \
+           -Wstrict-prototypes -Wmissing-prototypes -pedantic
 LDLIBS	= $(shell pkg-config --libs ncurses panel)
 PREFIX	= /usr/local
 
-cbonsai: cbonsai.c
+cbonsai: cbonsai.c cbonsai.h
 
 install: cbonsai
 	mkdir -p $(DESTDIR)$(PREFIX)/bin

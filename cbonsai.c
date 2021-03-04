@@ -1,10 +1,10 @@
 #include <stdlib.h>
-#include <ncurses.h>
-#include <panel.h>
 #include <getopt.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+
+#include "cbonsai.h"
 
 // global variables
 int branches = 0;
@@ -15,26 +15,6 @@ int shootCounter;
 
 WINDOW *baseWin, *treeWin, *messageBorderWin, *messageWin;
 PANEL *myPanels[4];
-
-struct config {
-	int live;
-	int infinite;
-	int screensaver;
-	int printTree;
-	int verbosity;
-	int lifeStart;
-	int multiplier;
-	int baseType;
-	int seed;
-	int leavesSize;
-
-	double timeWait;
-	double timeStep;
-
-	char* message;
-	char* leavesInput;
-	char* leaves[100];
-};
 
 void finish(void) {
 	clear();
@@ -95,47 +75,47 @@ void drawWins(int baseType, WINDOW* *baseWinPtr, WINDOW* *treeWinPtr) {
 	*baseWinPtr = newwin(baseHeight, baseWidth, baseOriginY, baseOriginX);
 	*treeWinPtr = newwin(rows - baseHeight, cols, 0, 0);
 
-	WINDOW *baseWin = *baseWinPtr;
-	WINDOW *treeWin = *treeWinPtr;
+	WINDOW *_baseWin = *baseWinPtr;
+	WINDOW *_treeWin = *treeWinPtr;
 
 	// add windows to array of panels
-	myPanels[0] = new_panel(baseWin);
-	myPanels[1] = new_panel(treeWin);
+	myPanels[0] = new_panel(_baseWin);
+	myPanels[1] = new_panel(_treeWin);
 
 	// draw art
 	switch(baseType) {
 		case 1:
-			wattron(baseWin, A_BOLD | COLOR_PAIR(8));
-			wprintw(baseWin, "%s", ":");
-			wattron(baseWin, COLOR_PAIR(2));
-			wprintw(baseWin, "%s", "___________");
-			wattron(baseWin, COLOR_PAIR(11));
-			wprintw(baseWin, "%s", "./~~~\\.");
-			wattron(baseWin, COLOR_PAIR(2));
-			wprintw(baseWin, "%s", "___________");
-			wattron(baseWin, COLOR_PAIR(8));
-			wprintw(baseWin, "%s", ":");
+			wattron(_baseWin, A_BOLD | COLOR_PAIR(8));
+			wprintw(_baseWin, "%s", ":");
+			wattron(_baseWin, COLOR_PAIR(2));
+			wprintw(_baseWin, "%s", "___________");
+			wattron(_baseWin, COLOR_PAIR(11));
+			wprintw(_baseWin, "%s", "./~~~\\.");
+			wattron(_baseWin, COLOR_PAIR(2));
+			wprintw(_baseWin, "%s", "___________");
+			wattron(_baseWin, COLOR_PAIR(8));
+			wprintw(_baseWin, "%s", ":");
 
-			mvwprintw(baseWin, 1, 0, "%s", " \\                           / ");
-			mvwprintw(baseWin, 2, 0, "%s", "  \\_________________________/ ");
-			mvwprintw(baseWin, 3, 0, "%s", "  (_)                     (_)");
+			mvwprintw(_baseWin, 1, 0, "%s", " \\                           / ");
+			mvwprintw(_baseWin, 2, 0, "%s", "  \\_________________________/ ");
+			mvwprintw(_baseWin, 3, 0, "%s", "  (_)                     (_)");
 
-			wattroff(baseWin, A_BOLD);
+			wattroff(_baseWin, A_BOLD);
 			break;
 		case 2:
-			wattron(baseWin, COLOR_PAIR(8));
-			wprintw(baseWin, "%s", "(");
-			wattron(baseWin, COLOR_PAIR(2));
-			wprintw(baseWin, "%s", "---");
-			wattron(baseWin, COLOR_PAIR(11));
-			wprintw(baseWin, "%s", "./~~~\\.");
-			wattron(baseWin, COLOR_PAIR(2));
-			wprintw(baseWin, "%s", "---");
-			wattron(baseWin, COLOR_PAIR(8));
-			wprintw(baseWin, "%s", ")");
+			wattron(_baseWin, COLOR_PAIR(8));
+			wprintw(_baseWin, "%s", "(");
+			wattron(_baseWin, COLOR_PAIR(2));
+			wprintw(_baseWin, "%s", "---");
+			wattron(_baseWin, COLOR_PAIR(11));
+			wprintw(_baseWin, "%s", "./~~~\\.");
+			wattron(_baseWin, COLOR_PAIR(2));
+			wprintw(_baseWin, "%s", "---");
+			wattron(_baseWin, COLOR_PAIR(8));
+			wprintw(_baseWin, "%s", ")");
 
-			mvwprintw(baseWin, 1, 0, "%s", " (           ) ");
-			mvwprintw(baseWin, 2, 0, "%s", "  (_________)  ");
+			mvwprintw(_baseWin, 1, 0, "%s", " (           ) ");
+			mvwprintw(_baseWin, 2, 0, "%s", "  (_________)  ");
 			break;
 	}
 }
