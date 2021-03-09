@@ -149,6 +149,7 @@ void roll(int *dice, int mod) { *dice = rand() % mod; }
 // check for 'q' key press
 void checkKeyPress(int screensaver) {
 	if ((screensaver && wgetch(stdscr) != ERR) || (wgetch(stdscr) == 'q')) {
+		noecho();
 		finish();
 		exit(0);
 	}
