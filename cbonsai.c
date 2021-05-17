@@ -1,9 +1,13 @@
+#define _XOPEN_SOURCE_EXTENDED 
+
 #include <stdlib.h>
-#include <ncurses.h>
-#include <panel.h>
+#include <ncursesw/curses.h>
+#include <locale.h>
+#include <ncursesw/panel.h>
 #include <getopt.h>
 #include <time.h>
 #include <string.h>
+#include <wchar.h>
 #include <ctype.h>
 
 enum branchType {trunk, shootLeft, shootRight, dying, dead};
@@ -49,7 +53,6 @@ void finish(void) {
 	clear();
 	refresh();
 	endwin();	// delete ncurses screen
-	curs_set(1);
 }
 
 void printHelp(const struct config *conf) {
@@ -149,12 +152,16 @@ void drawWins(int baseType, struct ncursesObjects *objects) {
 	else
 		objects->basePanel = new_panel(objects->baseWin);
 
+
 	if (objects->treePanel)
 		replace_panel(objects->treePanel, objects->treeWin);
 	else
 		objects->treePanel = new_panel(objects->treeWin);
 
 	drawBase(objects->baseWin, baseType);
+	
+	update_panels();
+	doupdate();
 }
 
 // roll (randomize) a given die
@@ -296,7 +303,9 @@ void setDeltas(enum branchType type, int life, int age, int multiplier, int *ret
 char* chooseString(const struct config *conf, enum branchType type, int life, int dx, int dy) {
 	char* branchStr;
 
-	branchStr = malloc(32 * sizeof(char));
+#define STR_LEN 32
+
+	branchStr = malloc(STR_LEN * sizeof(char));
 	strcpy(branchStr, "?");	// fallback character
 
 	if (life < 4) type = dying;
@@ -324,10 +333,11 @@ char* chooseString(const struct config *conf, enum branchType type, int life, in
 		break;
 	case dying:
 	case dead:
-		strncpy(branchStr, conf->leaves[rand() % conf->leavesSize], sizeof(branchStr) - 1);
-		branchStr[sizeof(branchStr) - 1] = '\0';
+		strncpy(branchStr, conf->leaves[rand() % conf->leavesSize], STR_LEN - 1);
+		branchStr[STR_LEN - 1] = '\0';
 	}
 
+#undef STR_LEN
 	return branchStr;
 }
 
@@ -406,7 +416,7 @@ void branch(const struct config *conf, struct ncursesObjects *objects, struct co
 		// choose string to use for this branch
 		char *branchStr = chooseString(conf, type, life, dx, dy);
 
-		mvwprintw(objects->treeWin, y, x, "%s", branchStr);
+		mvwprintw(objects->treeWin, y, x, branchStr);
 		wattroff(objects->treeWin, A_BOLD);
 		free(branchStr);
 
@@ -422,7 +432,7 @@ void addSpaces(WINDOW* messageWin, int count, int *linePosition, int maxWidth) {
 
 		// add spaces up to width
 		for (int j = 0; j < count; j++) {
-			wprintw(messageWin, "%s", " ");
+			wprintw(messageWin, " ");
 			(*linePosition)++;
 		}
 	}
@@ -457,6 +467,7 @@ void createMessageWindows(struct ncursesObjects *objects, char* message) {
 		replace_panel(objects->messageBorderPanel, objects->messageBorderWin);
 	else
 		objects->messageBorderPanel = new_panel(objects->messageBorderWin);
+
 
 	if (objects->messagePanel)
 		replace_panel(objects->messagePanel, objects->messageWin);
@@ -555,6 +566,7 @@ int drawMessage(const struct config *conf, struct ncursesObjects *objects, char*
 void init(const struct config *conf, struct ncursesObjects *objects) {
 	savetty();	// save terminal settings
 	initscr();	// init ncurses screen
+	refresh();
 	noecho();	// don't echo input to screen
 	curs_set(0);	// make cursor invisible
 	cbreak();	// don't wait for new line to grab user input
@@ -613,35 +625,49 @@ void growTree(const struct config *conf, struct ncursesObjects *objects) {
 
 // print stdscr to terminal window
 void printstdscr(void) {
-	int maxY, maxX, color, attribs;
+	int maxY, maxX;
 	getmaxyx(stdscr, maxY, maxX);
 
 	// loop through each character on stdscr
 	for (int y = 0; y < maxY; y++) {
 		for (int x = 0; x < maxX; x++) {
-			// get attributes of this character
-			color = mvwinch(stdscr, y, x) & A_COLOR;
-			attribs = (mvwinch(stdscr, y, x) & A_ATTRIBUTES) - color;
-			color /= 256;
+			cchar_t c;
+			mvwin_wch(stdscr, y, x, &c);
 
-			// enable bold if needed
-			if ((attribs) == A_BOLD) printf("%s", "\033[1m");
-			else printf("%s", "\033[0m");
+			wchar_t wch[128] = {0};
+			attr_t attrs;
+			short color_pair;
+			getcchar(&c, wch, &attrs, &color_pair, 0);
 
-			// enable correct color
-			if (color == 0) printf("%s", "\033[0m");
-			else if (color <= 7) printf("\033[3%im", color);
-			else if (color >= 8) printf("\033[9%im", color - 8);
+			short f;
+			short b;
+			pair_content(color_pair, &f, &b);
 
-			// print character
-			// mvwinch returns chtype which depends on machine, so we type cast
-			printf("%c", (char) mvwinch(stdscr, y, x));
+			if(attrs & A_BOLD) printf("\033[1m");
+			else printf("\033[0m");
+
+			if(f == 0) printf("\033[0m");
+			else if(f <= 7) printf("\033[3%him", f);
+			else if (f >= 8) printf("\033[9%him", f - 8);
+
+			printf("%ls", wch);
+
+			short clen = wcslen(wch);
+			short cwidth = 0;
+			for(int i = 0; i < clen; ++i)
+				cwidth += wcwidth(wch[i]);
+
+			if(cwidth > 1)
+				x += cwidth - 1;
 		}
 	}
-	printf("%s\n", "\033[0m");
+
+	printf("\033[0m\n");
 }
 
 int main(int argc, char* argv[]) {
+	setlocale(LC_ALL, "");
+
 	struct config conf = {
 		.live = 0,
 		.infinite = 0,
@@ -814,8 +840,8 @@ int main(int argc, char* argv[]) {
 		// overlay all windows onto stdscr
 		overlay(objects.baseWin, stdscr);
 		overlay(objects.treeWin, stdscr);
-		overlay(objects.messageBorderWin, stdscr);
-		overlay(objects.messageWin, stdscr);
+		overwrite(objects.messageBorderWin, stdscr);
+		overwrite(objects.messageWin, stdscr);
 
 		printstdscr();
 	} else {
