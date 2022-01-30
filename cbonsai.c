@@ -921,16 +921,15 @@ int main(int argc, char* argv[]) {
 			}
 			if (strtold(optarg, NULL) != 0) conf.seed = strtod(optarg, NULL);
 			else {
-				for (int i = 0; i < strlen(optarg); i++)
-					conf.seed += optarg[i];
-				if (strlen(optarg) == 1 && optarg[0] == '0')
-					conf.seed = -1;
+				printf("error: invalid seed: '%s'\n", optarg);
+				quit(&conf, &objects, 1);
 			}
 			if (conf.seed < 0) {
 				printf("error: invalid seed: '%s'\n", optarg);
 				quit(&conf, &objects, 1);
 			}
 			break;
+
 		case 'T':
 			if (conf.seed != 0) {
 				printf("error: -s and -T are mutually exclusive, seed already set: %d\n", conf.seed);
