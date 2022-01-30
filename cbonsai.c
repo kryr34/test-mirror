@@ -143,6 +143,7 @@ void printHelp(void) {
 	printf("  -L, --life=INT         life; higher -> more growth (0-200) [default: 32]\n");
 	printf("  -p, --print            print tree to terminal when finished\n");
 	printf("  -s, --seed=INT         seed random number generator\n");
+	printf("  -T, --stringseed=STR   seed random number generator from string\n");
 	printf("  -W, --save=FILE        save progress to file [default: $XDG_CACHE_HOME/cbonsai or $HOME/.cache/cbonsai]\n");
 	printf("  -C, --load=FILE        load progress from file [default: $XDG_CACHE_HOME/cbonsai]\n");
 	printf("  -v, --verbose          increase output verbosity\n");
@@ -835,7 +836,7 @@ int main(int argc, char* argv[]) {
 	// parse arguments
 	int option_index = 0;
 	int c;
-	while ((c = getopt_long(argc, argv, ":lt:iw:Sm:b:c:M:L:ps:C:W:vh", long_options, &option_index)) != -1) {
+	while ((c = getopt_long(argc, argv, ":lt:iw:Sm:b:c:M:L:ps:T:C:W:vh", long_options, &option_index)) != -1) {
 		switch (c) {
 		case 'l':
 			conf.live = 1;
@@ -914,6 +915,10 @@ int main(int argc, char* argv[]) {
 			conf.printTree = 1;
 			break;
 		case 's':
+			if (conf.seed != 0) {
+				printf("error: -s and -T are mutually exclusive, seed already set: %d\n", conf.seed);
+				quit(&conf, &objects, 1);
+			}
 			if (strtold(optarg, NULL) != 0) conf.seed = strtod(optarg, NULL);
 			else {
 				printf("error: invalid seed: '%s'\n", optarg);
@@ -923,6 +928,14 @@ int main(int argc, char* argv[]) {
 				printf("error: invalid seed: '%s'\n", optarg);
 				quit(&conf, &objects, 1);
 			}
+			break;
+		case 'T':
+			if (conf.seed != 0) {
+				printf("error: -s and -T are mutually exclusive, seed already set: %d\n", conf.seed);
+				quit(&conf, &objects, 1);
+			}
+			for (int i = 0; i < strlen(optarg); i++)
+				conf.seed += optarg[i];
 			break;
 		case 'W':
 			// skip argument if it's actually an option

@@ -50,6 +50,9 @@ cbonsai is a beautifully random bonsai tree generator.
 *-s*, *--seed*=_INT_
 	seed random number generator
 
+*-T*, *--stringseed*=_STR_
+	seed random number generator from string
+
 *-W*, *--save*=_FILE_
 	save progress to file [default: ~/.cache/cbonsai]
 
