@@ -53,19 +53,21 @@ sudo port install cbonsai
 
 ### Manual
 
-You'll need to have a working `ncursesw` library. If you're on a `Debian`-based system, you can install `ncursesw` like so:
+You'll need to have a working `ncursesw`/`ncurses` library.
+
+#### Debian-based
 
 ```bash
 sudo apt install libncursesw5-dev
 ```
 
-Or on Fedora:
+#### Fedora
 
 ```bash
 sudo dnf install ncursesw5-devel
 ```
 
-On macOS:
+#### macOS
 
 Follow the [Manual](#manual) installation, but if you install `ncurses` via homebrew, you may see this:
 
