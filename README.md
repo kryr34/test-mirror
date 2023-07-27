@@ -44,20 +44,7 @@ You may install `cbonsai` using [Homebrew](https://brew.sh):
 brew install cbonsai
 ```
 
-Follow the [Manual](#manual) installation, but if you install `ncurses` via homebrew, you may see this:
-
-```
-For pkg-config to find ncurses you may need to set:
-  set -gx PKG_CONFIG_PATH "/usr/local/opt/ncurses/lib/pkgconfig"
-```
-
-You may need to follow these instructions before running `make install`.
-
-If you are having trouble installing on MacOS, try reading [this issue](https://gitlab.com/jallbrit/cbonsai/-/issues/10).
-
-#### MacPorts
-
-On macOS, you may also install `cbonsai` using [MacPorts](https://www.macports.org). Simply install MacPorts, then issue the following commands:
+You may also install `cbonsai` using [MacPorts](https://www.macports.org). Simply install MacPorts, then issue the following commands:
 
 ```bash
 sudo port selfupdate
@@ -77,6 +64,19 @@ Or on Fedora:
 ```bash
 sudo dnf install ncursesw5-devel
 ```
+
+On macOS:
+
+Follow the [Manual](#manual) installation, but if you install `ncurses` via homebrew, you may see this:
+
+```
+For pkg-config to find ncurses you may need to set:
+  set -gx PKG_CONFIG_PATH "/usr/local/opt/ncurses/lib/pkgconfig"
+```
+
+You may need to follow these instructions before running `make install`.
+
+If you are having trouble installing on MacOS, try reading [this issue](https://gitlab.com/jallbrit/cbonsai/-/issues/10).
 
 Once dependencies are met, then install:
 
