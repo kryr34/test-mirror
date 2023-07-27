@@ -38,6 +38,12 @@ sudo dnf install cbonsai
 
 ### MacOS
 
+You may install `cbonsai` using [Homebrew](https://brew.sh):
+
+```bash
+brew install cbonsai
+```
+
 Follow the [Manual](#manual) installation, but if you install `ncurses` via homebrew, you may see this:
 
 ```
